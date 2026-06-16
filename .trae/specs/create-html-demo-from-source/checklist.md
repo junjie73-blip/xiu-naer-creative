@@ -1,0 +1,5 @@
+- [x] `demo.html` 已生成在工作目录 `F:\小说\xiu-naer-creative\demo.html`
+- [x] `demo.html` 中无指向 `./_shared/...` 的本地资源引用
+- [x] 页面在浏览器中打开后，Hero、七个内容区块、CTA、Footer 均正常显示
+- [x] 滚动渐显动画、返回顶部按钮、Hero 粒子背景效果正常生效
+- [x] 源文件内容未被修改

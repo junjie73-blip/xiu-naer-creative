@@ -1,0 +1,9 @@
+- [x] 产品需求文档 `spec.md` 已创建，包含 Why、What Changes、Impact、Requirements
+- [x] 居民端微信小程序的核心场景（上报、追踪、评价）已定义
+- [x] AI 识别与智能派单场景已定义
+- [x] 物业/社区 Web 后台场景（工单管理、数据看板）已定义
+- [x] 超时预警与实时通知机制已定义
+- [x] 技术架构方案（前端、后端、AI、基础设施）已明确，文档 `architecture.md` 已生成
+- [x] 编码规范文档 `CODING_STANDARDS.md` 已使用 `write-coding-standards-from-file` skill 生成
+- [x] 开发任务清单 `tasks.md` 已创建并全部完成
+- [x] 验收清单 `checklist.md` 已创建并全部通过
