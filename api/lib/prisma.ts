@@ -1,18 +1,23 @@
 import { PrismaClient } from '@prisma/client'
-import { execSync } from 'child_process'
-import { seedDatabase } from './seed.js'
+import fs from 'fs'
+import path from 'path'
+
+const TMP_DB_PATH = '/tmp/dev.db'
+const BUNDLED_DB_PATH = path.join(process.cwd(), 'prisma/dev.db')
 
 // Vercel Serverless Functions 没有持久化磁盘，使用 /tmp 存放 SQLite
 if (process.env.VERCEL && !process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'file:/tmp/dev.db'
+  process.env.DATABASE_URL = `file:${TMP_DB_PATH}`
 }
 
-// 在 Vercel 冷启动时自动部署迁移并写入种子数据
+// 冷启动时把构建阶段生成并打包进来的数据库复制到可写的 /tmp
 if (process.env.VERCEL) {
   try {
-    execSync('npx prisma migrate deploy', { stdio: 'ignore' })
+    if (!fs.existsSync(TMP_DB_PATH) && fs.existsSync(BUNDLED_DB_PATH)) {
+      fs.copyFileSync(BUNDLED_DB_PATH, TMP_DB_PATH)
+    }
   } catch (e) {
-    console.error('Failed to deploy migrations', e)
+    console.error('Failed to copy bundled database', e)
   }
 }
 
@@ -24,8 +29,4 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient()
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
-}
-
-if (process.env.VERCEL) {
-  seedDatabase(prisma).catch((e) => console.error('Failed to seed database', e))
 }
