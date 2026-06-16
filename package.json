@@ -14,7 +14,8 @@
     "lint:fix": "eslint . --ext .ts,.vue --fix",
     "db:seed": "tsx api/scripts/seed.ts",
     "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
