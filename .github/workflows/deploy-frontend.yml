@@ -28,6 +28,8 @@ jobs:
       - name: 配置 Pages
         uses: actions/configure-pages@v5
         id: pages
+        with:
+          enablement: true
 
       - name: 设置 Node.js
         uses: actions/setup-node@v4
