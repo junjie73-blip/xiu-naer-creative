@@ -31,10 +31,18 @@ jobs:
         with:
           enablement: true
 
+      - name: 准备部署文件
+        run: |
+          mkdir _site
+          cp index.html _site/index.html
+          cp xiu-naer-creative.html _site/xiu-naer-creative.html
+          cp README.md _site/README.md
+          cp -r _shared _site/_shared
+
       - name: 上传静态文件
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: ./_site
 
       - name: 部署到 GitHub Pages
         id: deployment
