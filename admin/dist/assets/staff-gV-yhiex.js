@@ -1,1 +1,0 @@
-import{C as a}from"./index-Bx-3RFkF.js";async function r(){return a("/api/users?role=staff")}async function f(t){return a("/api/users",{method:"POST",body:JSON.stringify(t)})}async function n(t,s){return a(`/api/users/${t}`,{method:"PATCH",body:JSON.stringify(s)})}async function i(t){await a(`/api/users/${t}`,{method:"DELETE"})}export{f as c,i as d,r as l,n as u};

@@ -1,1 +1,0 @@
-import{C as r}from"./index-Bx-3RFkF.js";async function n(t=7){return r(`/api/admin/reports/trend?days=${t}`)}async function e(){return r("/api/admin/reports/category")}async function i(){return r("/api/admin/reports/rating")}export{e as a,i as b,n as f};
