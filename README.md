@@ -1,5 +1,36 @@
-# Vue 3 + TypeScript + Vite
+# 修哪儿 - 社区报修进度追踪平台（交互 Demo）
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+这是一个面向创意比赛的单文件 HTML 交互 Demo，模拟「社区报修进度追踪平台」的核心流程，无需后端即可运行。
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## 在线预览
+
+👉 [https://junjie73-blip.github.io/xiu-naer-creative/](https://junjie73-blip.github.io/xiu-naer-creative/)
+
+## 本地体验
+
+直接用浏览器打开项目根目录下的 `index.html` 即可。
+
+## 主要功能
+
+- **居民端**
+  - 提交报修（问题类型、位置、描述、联系方式）
+  - 查看我的报修列表与详情
+  - 快递式处理进度时间线
+  - 催单与完工评价
+
+- **管理端**
+  - 数据看板：工单总数、待处理、处理中、已完成、满意度
+  - 工单列表与筛选
+  - 修改工单状态、派单、填写处理备注
+
+## 数据说明
+
+所有数据保存在浏览器 `localStorage` 中，首次打开会自动生成 5 条示例工单，刷新页面后数据不会丢失。
+
+## 技术栈
+
+- HTML5
+- CSS3
+- 原生 JavaScript（ES6）
+
+零外部依赖，单文件即可运行。

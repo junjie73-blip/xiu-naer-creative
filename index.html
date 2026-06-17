@@ -1,24 +1,995 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Trae Project</title>
-    <script type="module">
-      if (import.meta.hot?.on) {
-        import.meta.hot.on('vite:error', (error) => {
-          if (error.err) {
-            console.error(
-              [error.err.message, error.err.frame].filter(Boolean).join('\n'),
-            )
-          }
-        })
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>修哪儿 - 社区报修进度追踪平台</title>
+  <style>
+    :root {
+      --primary: #FF6B35;
+      --primary-light: #FFF0E8;
+      --primary-dark: #E85A28;
+      --secondary: #2563EB;
+      --secondary-light: #EFF6FF;
+      --bg: #F5F7FA;
+      --card: #FFFFFF;
+      --text: #1F2937;
+      --muted: #6B7280;
+      --border: #E5E7EB;
+      --success: #10B981;
+      --success-light: #ECFDF5;
+      --warning: #F59E0B;
+      --warning-light: #FFFBEB;
+      --danger: #EF4444;
+      --danger-light: #FEF2F2;
+      --radius: 12px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    #app {
+      max-width: 520px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: var(--bg);
+      position: relative;
+      overflow-x: hidden;
+    }
+    a { text-decoration: none; color: inherit; }
+    button, input, select, textarea { font-family: inherit; }
+
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+    }
+    .header-title { font-size: 18px; font-weight: 600; }
+    .header-back {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.2); cursor: pointer;
+    }
+    .header-action { min-width: 32px; }
+
+    /* Home */
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      padding: 32px 20px 40px;
+      text-align: center;
+    }
+    .hero h1 { margin: 0 0 10px; font-size: 28px; }
+    .hero p { margin: 0; opacity: 0.95; font-size: 15px; }
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 20px;
+      margin-top: -24px;
+    }
+    .role-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .role-card:active { transform: scale(0.98); }
+    .role-icon { font-size: 40px; margin-bottom: 10px; }
+    .role-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .role-desc { font-size: 12px; color: var(--muted); }
+
+    .section { padding: 16px; }
+    .section-title { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+    .feature-list { display: grid; gap: 12px; }
+    .feature-item {
+      background: var(--card); border-radius: var(--radius);
+      padding: 16px; display: flex; align-items: flex-start; gap: 12px;
+      box-shadow: var(--shadow);
+    }
+    .feature-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--primary-light); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 14px; flex-shrink: 0;
+    }
+    .feature-text h4 { margin: 0 0 4px; font-size: 15px; }
+    .feature-text p { margin: 0; font-size: 13px; color: var(--muted); }
+
+    /* Forms */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; font-size: 15px; background: var(--card);
+      outline: none; transition: border .15s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+    .form-textarea { min-height: 100px; resize: vertical; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border: none; border-radius: 10px; padding: 12px 20px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: transform .1s, opacity .15s; width: 100%;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-secondary { background: var(--secondary-light); color: var(--secondary); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Cards */
+    .card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow);
+    }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .card-sub { font-size: 13px; color: var(--muted); }
+    .card-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+
+    /* Status */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .badge-pending { background: var(--warning-light); color: var(--warning); }
+    .badge-assigned { background: var(--secondary-light); color: var(--secondary); }
+    .badge-processing { background: #E0E7FF; color: #4F46E5; }
+    .badge-completed { background: var(--success-light); color: var(--success); }
+
+    /* Lists */
+    .order-item {
+      background: var(--card); border-radius: var(--radius);
+      padding: 14px 16px; margin-bottom: 12px; box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+    .order-item:active { background: #f9fafb; }
+    .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .order-id { font-size: 13px; color: var(--muted); }
+    .order-type { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .order-meta { font-size: 12px; color: var(--muted); }
+
+    /* Tabs */
+    .tabs {
+      display: flex; gap: 8px; padding: 12px 16px;
+      background: var(--card); position: sticky; top: 56px; z-index: 40;
+      border-bottom: 1px solid var(--border); overflow-x: auto;
+    }
+    .tab {
+      padding: 6px 14px; border-radius: 20px; font-size: 13px;
+      white-space: nowrap; cursor: pointer; background: var(--bg);
+    }
+    .tab.active { background: var(--primary); color: #fff; }
+
+    /* Timeline */
+    .timeline { position: relative; padding-left: 24px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 7px; top: 6px; bottom: 6px;
+      width: 2px; background: var(--border);
+    }
+    .timeline-item { position: relative; margin-bottom: 18px; }
+    .timeline-dot {
+      position: absolute; left: -21px; top: 3px; width: 14px; height: 14px;
+      border-radius: 50%; background: var(--border); border: 2px solid var(--card);
+    }
+    .timeline-item.active .timeline-dot { background: var(--primary); }
+    .timeline-item.completed .timeline-dot { background: var(--success); }
+    .timeline-time { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+    .timeline-title { font-size: 14px; font-weight: 600; }
+    .timeline-desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* Admin dashboard */
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; }
+    .stat-card {
+      background: var(--card); border-radius: var(--radius); padding: 18px 14px;
+      box-shadow: var(--shadow); text-align: center;
+    }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 520px; background: var(--card);
+      border-top: 1px solid var(--border); display: flex; z-index: 60;
+    }
+    .nav-item {
+      flex: 1; padding: 10px 0; text-align: center; font-size: 12px; color: var(--muted);
+      cursor: pointer; transition: color .15s;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: auto; }
+    .modal {
+      background: var(--card); border-radius: var(--radius);
+      width: calc(100% - 40px); max-width: 360px; padding: 20px;
+      transform: scale(0.95); transition: transform .2s;
+    }
+    .modal-overlay.show .modal { transform: scale(1); }
+    .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+    .stars { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+    .star { font-size: 32px; cursor: pointer; color: #D1D5DB; transition: color .15s; }
+    .star.active { color: #FBBF24; }
+
+    /* Toast */
+    .toast {
+      position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      background: rgba(31,41,55,0.92); color: #fff; padding: 10px 18px;
+      border-radius: 20px; font-size: 14px; z-index: 110;
+      opacity: 0; pointer-events: none; transition: all .25s;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* AI scanning overlay */
+    .scan-overlay {
+      position: fixed; inset: 0; background: rgba(255,255,255,0.96);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 120; opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .scan-overlay.show { opacity: 1; pointer-events: auto; }
+    .scan-box {
+      width: 120px; height: 120px; border: 2px dashed var(--primary);
+      border-radius: var(--radius); display: flex; align-items: center; justify-content: center;
+      font-size: 48px; position: relative; overflow: hidden;
+    }
+    .scan-line {
+      position: absolute; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      animation: scan 1.2s linear infinite;
+    }
+    @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+    .scan-text { margin-top: 16px; color: var(--primary); font-weight: 600; }
+
+    .empty {
+      text-align: center; padding: 40px 20px; color: var(--muted);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 10px; }
+
+    .mt-1 { margin-top: 8px; }
+    .mt-2 { margin-top: 16px; }
+    .mb-1 { margin-bottom: 8px; }
+    .text-muted { color: var(--muted); }
+    .text-sm { font-size: 13px; }
+    .flex { display: flex; }
+    .gap-2 { gap: 8px; }
+    .content-padded { padding: 16px 16px 80px; }
+
+    @media (min-width: 640px) {
+      .role-grid { grid-template-columns: repeat(2, 220px); justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Rating Modal -->
+  <div id="ratingModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-title">评价本次服务</div>
+      <div class="stars" id="starBox"></div>
+      <textarea id="ratingComment" class="form-textarea" placeholder="您的建议会让我们做得更好（选填）"></textarea>
+      <div class="flex gap-2 mt-2">
+        <button class="btn btn-outline" onclick="closeRating()">取消</button>
+        <button class="btn btn-primary" onclick="submitRating()">提交评价</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Scan Overlay -->
+  <div id="scanOverlay" class="scan-overlay">
+    <div class="scan-box">
+      <div class="scan-line"></div>
+      📷
+    </div>
+    <div class="scan-text">AI 正在识别问题类型...</div>
+  </div>
+
+  <script>
+    // ===== Data layer =====
+    const STORAGE_KEY = 'xiuNaerDemoData';
+    const STAFF = ['张三', '李四', '王五'];
+    const TYPES = ['水电维修', '家电维修', '门窗维修', '管道疏通', '公共设施', '其他'];
+    const STATUS_MAP = {
+      pending: { label: '待处理', class: 'badge-pending' },
+      assigned: { label: '已派单', class: 'badge-assigned' },
+      processing: { label: '处理中', class: 'badge-processing' },
+      completed: { label: '已完成', class: 'badge-completed' },
+    };
+    const STATUS_FLOW = ['pending', 'assigned', 'processing', 'completed'];
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) { console.error(e); }
+      return seedData();
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function seedData() {
+      const now = Date.now();
+      const orders = [
+        makeOrder({
+          reporterName: '王阿姨', phone: '138****1234', type: '水电维修',
+          location: '3号楼2单元501', description: '厨房水龙头一直滴水，关不紧。',
+          status: 'completed', assignee: '张三', rating: 5, comment: '张师傅动作很快，态度也好',
+          createdAt: now - 1000 * 60 * 60 * 24 * 2,
+          events: [
+            { title: '报修提交', desc: '问题已记录，等待受理', offset: 0 },
+            { title: '已受理', desc: '物业已确认，准备派单', offset: 1000 * 60 * 30 },
+            { title: '已派单', desc: '维修员张三接单', offset: 1000 * 60 * 45 },
+            { title: '处理中', desc: '维修员已到达现场', offset: 1000 * 60 * 60 * 2 },
+            { title: '已完成', desc: '水龙头已更换，居民评价满意', offset: 1000 * 60 * 60 * 3 },
+          ]
+        }),
+        makeOrder({
+          reporterName: '李先生', phone: '139****5678', type: '家电维修',
+          location: '7号楼1单元1202', description: '客厅空调不制冷，显示 E1 错误代码。',
+          status: 'processing', assignee: '李四',
+          createdAt: now - 1000 * 60 * 60 * 5,
+          events: [
+            { title: '报修提交', desc: '问题已记录，等待受理', offset: 0 },
+            { title: '已受理', desc: '物业已确认，准备派单', offset: 1000 * 60 * 20 },
+            { title: '已派单', desc: '维修员李四接单', offset: 1000 * 60 * 40 },
+            { title: '处理中', desc: '维修员已到达现场，正在检修', offset: 1000 * 60 * 60 * 2 },
+          ]
+        }),
+        makeOrder({
+          reporterName: '赵女士', phone: '137****9012', type: '门窗维修',
+          location: '2号楼3单元802', description: '卧室窗户把手坏了，打不开。',
+          status: 'assigned', assignee: '王五',
+          createdAt: now - 1000 * 60 * 60 * 1,
+          events: [
+            { title: '报修提交', desc: '问题已记录，等待受理', offset: 0 },
+            { title: '已受理', desc: '物业已确认，准备派单', offset: 1000 * 60 * 15 },
+            { title: '已派单', desc: '维修员王五接单，预计今日上门', offset: 1000 * 60 * 25 },
+          ]
+        }),
+        makeOrder({
+          reporterName: '孙大爷', phone: '136****3456', type: '公共设施',
+          location: '小区东门健身器材', description: '太极推手的转盘松动了，有安全隐患。',
+          status: 'pending', assignee: '',
+          createdAt: now - 1000 * 60 * 45,
+          events: [
+            { title: '报修提交', desc: '问题已记录，等待受理', offset: 0 },
+          ]
+        }),
+        makeOrder({
+          reporterName: '周小姐', phone: '135****7890', type: '管道疏通',
+          location: '5号楼1单元102', description: '卫生间地漏下水很慢。',
+          status: 'completed', assignee: '张三', rating: 4,
+          createdAt: now - 1000 * 60 * 60 * 24,
+          events: [
+            { title: '报修提交', desc: '问题已记录，等待受理', offset: 0 },
+            { title: '已受理', desc: '物业已确认，准备派单', offset: 1000 * 60 * 10 },
+            { title: '已派单', desc: '维修员张三接单', offset: 1000 * 60 * 30 },
+            { title: '处理中', desc: '维修员已到达现场', offset: 1000 * 60 * 60 },
+            { title: '已完成', desc: '管道已疏通', offset: 1000 * 60 * 90 },
+          ]
+        }),
+      ];
+      const data = { orders, lastId: 5 };
+      saveData(data);
+      return data;
+    }
+
+    function makeOrder(opts) {
+      const createdAt = opts.createdAt || Date.now();
+      const events = (opts.events || []).map(e => ({
+        time: createdAt + e.offset,
+        title: e.title,
+        description: e.desc,
+      }));
+      return {
+        id: opts.id || generateOrderId(opts.seq),
+        reporterName: opts.reporterName || '匿名居民',
+        phone: opts.phone || '',
+        type: opts.type || '其他',
+        location: opts.location || '',
+        description: opts.description || '',
+        status: opts.status || 'pending',
+        assignee: opts.assignee || '',
+        rating: opts.rating || null,
+        comment: opts.comment || '',
+        createdAt,
+        updatedAt: events.length ? events[events.length - 1].time : createdAt,
+        timeline: events,
+      };
+    }
+
+    function generateOrderId(seq) {
+      const data = loadData();
+      data.lastId = (data.lastId || 0) + 1;
+      saveData(data);
+      const date = new Date();
+      const prefix = `R${date.getFullYear()}${String(date.getMonth()+1).padStart(2,'0')}${String(date.getDate()).padStart(2,'0')}`;
+      return `${prefix}${String(data.lastId).padStart(4,'0')}`;
+    }
+
+    function getOrders() {
+      return loadData().orders;
+    }
+
+    function updateOrder(id, updater) {
+      const data = loadData();
+      const idx = data.orders.findIndex(o => o.id === id);
+      if (idx === -1) return null;
+      const order = { ...data.orders[idx], ...updater(data.orders[idx]) };
+      order.updatedAt = Date.now();
+      data.orders[idx] = order;
+      saveData(data);
+      return order;
+    }
+
+    function addOrder(order) {
+      const data = loadData();
+      data.orders.unshift(order);
+      saveData(data);
+      return order;
+    }
+
+    // ===== UI helpers =====
+    const app = document.getElementById('app');
+
+    function formatTime(ts) {
+      const d = new Date(ts);
+      return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    function render() {
+      const hash = location.hash.replace(/^#/, '') || 'home';
+      if (hash === 'home') renderHome();
+      else if (hash.startsWith('resident')) renderResident(hash);
+      else if (hash.startsWith('admin')) renderAdmin(hash);
+      else renderHome();
+      window.scrollTo(0, 0);
+    }
+
+    // ===== Home =====
+    function renderHome() {
+      app.innerHTML = `
+        <div class="hero">
+          <h1>修哪儿</h1>
+          <p>社区报修进度追踪平台 · 让维修像查快递一样透明</p>
+        </div>
+        <div class="role-grid">
+          <a class="role-card" href="#resident/report">
+            <div class="role-icon">🏠</div>
+            <div class="role-title">我是居民</div>
+            <div class="role-desc">一键报修 · 实时追踪 · 满意评价</div>
+          </a>
+          <a class="role-card" href="#admin/dashboard">
+            <div class="role-icon">🛠️</div>
+            <div class="role-title">我是物业/管理员</div>
+            <div class="role-desc">工单派发 · 进度管理 · 数据看板</div>
+          </a>
+        </div>
+        <div class="section">
+          <div class="section-title">服务流程</div>
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-num">1</div>
+              <div class="feature-text">
+                <h4>拍照/填写报修</h4>
+                <p>居民选择问题类型、填写位置与描述，AI 辅助分类。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-num">2</div>
+              <div class="feature-text">
+                <h4>物业智能派单</h4>
+                <p>系统自动匹配维修员，居民可实时查看处理进度。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-num">3</div>
+              <div class="feature-text">
+                <h4>完工评价反馈</h4>
+                <p>维修完成后居民打分评价，数据沉淀用于服务优化。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="section" style="padding-bottom: 40px;">
+          <div class="section-title">核心价值</div>
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-num">✓</div>
+              <div class="feature-text">
+                <h4>进度透明</h4>
+                <p>快递式时间线，每个节点清晰可见，告别反复打电话追问。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-num">✓</div>
+              <div class="feature-text">
+                <h4>响应迅速</h4>
+                <p>智能派单 + 催单提醒，缩短维修等待时间。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-num">✓</div>
+              <div class="feature-text">
+                <h4>数据驱动</h4>
+                <p>满意度、响应时长、分类占比等多维报表助力物业决策。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ===== Resident =====
+    function renderResident(hash) {
+      const parts = hash.split('/');
+      const page = parts[1] || 'report';
+      const param = parts[2] || '';
+
+      let content = '';
+      if (page === 'report') content = residentReport();
+      else if (page === 'orders') content = residentOrders(param);
+      else if (page === 'order') content = residentOrderDetail(param);
+      else content = residentReport();
+
+      app.innerHTML = `
+        <div class="header">
+          <div class="header-back" onclick="location.hash='home'">←</div>
+          <div class="header-title">居民服务</div>
+          <div class="header-action"></div>
+        </div>
+        ${content}
+        <div class="bottom-nav">
+          <div class="nav-item ${page === 'report' ? 'active' : ''}" onclick="location.hash='resident/report'">
+            <span class="nav-icon">📝</span>我要报修
+          </div>
+          <div class="nav-item ${page === 'orders' || page === 'order' ? 'active' : ''}" onclick="location.hash='resident/orders'">
+            <span class="nav-icon">📋</span>我的报修
+          </div>
+        </div>
+      `;
+    }
+
+    function residentReport() {
+      return `
+        <div class="content-padded">
+          <div class="card" style="margin-top: 8px;">
+            <div class="card-title">填写报修信息</div>
+            <div class="card-sub">AI 会自动识别问题类型，物业将第一时间处理</div>
+            <form id="reportForm" class="mt-2" onsubmit="handleReportSubmit(event)">
+              <div class="form-group">
+                <label class="form-label">问题类型</label>
+                <select class="form-select" name="type" required>
+                  ${TYPES.map(t => `<option value="${t}">${t}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">所在位置</label>
+                <input class="form-input" name="location" placeholder="例如：3号楼2单元501" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">问题描述</label>
+                <textarea class="form-textarea" name="description" placeholder="请描述具体问题，便于维修员准备工具和配件" required></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">联系方式</label>
+                <input class="form-input" name="phone" placeholder="手机号，方便维修员联系您" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">照片（可选）</label>
+                <div style="border: 2px dashed var(--border); border-radius: 10px; padding: 30px; text-align: center; color: var(--muted); background: var(--bg);">
+                  <div style="font-size: 32px;">📷</div>
+                  <div style="font-size: 13px; margin-top: 6px;">点击上传问题照片</div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">提交报修</button>
+            </form>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleReportSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const type = form.type.value;
+      const location = form.location.value;
+      const description = form.description.value;
+      const phone = form.phone.value;
+
+      const overlay = document.getElementById('scanOverlay');
+      overlay.classList.add('show');
+
+      setTimeout(() => {
+        overlay.classList.remove('show');
+        const now = Date.now();
+        const order = makeOrder({
+          reporterName: '我', phone, type, location, description,
+          status: 'pending', assignee: '',
+          createdAt: now,
+          events: [
+            { title: '报修提交', desc: `AI 识别为「${type}」，已提交至物业`, offset: 0 },
+          ]
+        });
+        addOrder(order);
+        toast('报修提交成功，物业将尽快处理');
+        location.hash = `resident/orders`;
+      }, 900);
+    }
+
+    function residentOrders(filter = 'all') {
+      const orders = getOrders();
+      const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+      const tabs = [
+        { key: 'all', label: '全部' },
+        { key: 'pending', label: '待处理' },
+        { key: 'processing', label: '处理中' },
+        { key: 'completed', label: '已完成' },
+      ];
+
+      let listHtml = '';
+      if (filtered.length === 0) {
+        listHtml = `<div class="empty"><div class="empty-icon">📭</div><div>暂无${filter === 'all' ? '' : STATUS_MAP[filter].label}工单</div></div>`;
+      } else {
+        listHtml = filtered.map(o => `
+          <div class="order-item" onclick="location.hash='resident/order/${o.id}'">
+            <div class="order-header">
+              <span class="order-id">${o.id}</span>
+              <span class="badge ${STATUS_MAP[o.status].class}">${STATUS_MAP[o.status].label}</span>
+            </div>
+            <div class="order-type">${o.type} · ${o.location}</div>
+            <div class="order-meta">${formatTime(o.createdAt)} · ${o.description.slice(0, 30)}${o.description.length > 30 ? '...' : ''}</div>
+          </div>
+        `).join('');
       }
-    </script>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+
+      return `
+        <div class="tabs">
+          ${tabs.map(t => `<div class="tab ${filter === t.key ? 'active' : ''}" onclick="location.hash='resident/orders/${t.key}'">${t.label}</div>`).join('')}
+        </div>
+        <div class="content-padded">
+          ${listHtml}
+        </div>
+      `;
+    }
+
+    function residentOrderDetail(id) {
+      const order = getOrders().find(o => o.id === id);
+      if (!order) return residentOrders();
+
+      const canUrge = order.status !== 'completed';
+      const canRate = order.status === 'completed' && !order.rating;
+      const badge = STATUS_MAP[order.status];
+
+      let timelineHtml = '';
+      const flowEvents = [
+        { status: 'pending', title: '报修提交', desc: '问题已记录，等待受理' },
+        { status: 'assigned', title: '已派单', desc: order.assignee ? `维修员${order.assignee}已接单` : '等待分配维修员' },
+        { status: 'processing', title: '处理中', desc: '维修员正在现场处理' },
+        { status: 'completed', title: '已完成', desc: '问题已解决' },
+      ];
+      const currentIdx = STATUS_FLOW.indexOf(order.status);
+
+      timelineHtml = `<div class="timeline">` + flowEvents.map((ev, idx) => {
+        const active = idx <= currentIdx;
+        const time = active ? formatTime(order.timeline.find(e => e.title.includes(ev.title) || (ev.status === 'pending' && e.title === '报修提交'))?.time || order.createdAt) : '待完成';
+        return `
+          <div class="timeline-item ${active ? 'active' : ''} ${idx < currentIdx ? 'completed' : ''}">
+            <div class="timeline-dot"></div>
+            <div class="timeline-time">${time}</div>
+            <div class="timeline-title">${ev.title}</div>
+            <div class="timeline-desc">${ev.desc}</div>
+          </div>
+        `;
+      }).join('') + `</div>`;
+
+      return `
+        <div class="content-padded">
+          <div class="card" style="margin-top: 8px;">
+            <div class="order-header">
+              <span class="order-id">${order.id}</span>
+              <span class="badge ${badge.class}">${badge.label}</span>
+            </div>
+            <div class="order-type" style="margin-top: 8px;">${order.type} · ${order.location}</div>
+            <div class="order-meta mt-1">报修人：${order.reporterName} ${order.phone}</div>
+            <div class="order-meta mt-1">提交时间：${formatTime(order.createdAt)}</div>
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 14px 0;">
+            <div class="text-sm text-muted">问题描述</div>
+            <div style="font-size: 14px; margin-top: 4px;">${order.description}</div>
+            ${order.assignee ? `<div class="text-sm text-muted mt-1">维修员</div><div style="font-size: 14px;">👷 ${order.assignee}</div>` : ''}
+            ${order.rating ? `<div class="text-sm text-muted mt-1">我的评价</div><div style="font-size: 14px;">${'⭐'.repeat(order.rating)} ${order.comment ? '· ' + order.comment : ''}</div>` : ''}
+            <div class="flex gap-2 mt-2">
+              ${canUrge ? `<button class="btn btn-outline" onclick="urgeOrder('${order.id}')">🔔 催单</button>` : ''}
+              ${canRate ? `<button class="btn btn-primary" onclick="openRating('${order.id}')">⭐ 评价</button>` : ''}
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">处理进度</div>
+            <div style="margin-top: 12px;">${timelineHtml}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function urgeOrder(id) {
+      const order = updateOrder(id, o => ({
+        timeline: [...o.timeline, { time: Date.now(), title: '居民催单', description: '居民催促尽快处理' }]
+      }));
+      toast('已提醒物业加快处理');
+      location.hash = `resident/order/${id}`;
+      setTimeout(() => render(), 0);
+    }
+
+    // ===== Rating =====
+    let ratingOrderId = null;
+    let currentRating = 5;
+
+    function openRating(id) {
+      ratingOrderId = id;
+      currentRating = 5;
+      renderStars();
+      document.getElementById('ratingComment').value = '';
+      document.getElementById('ratingModal').classList.add('show');
+    }
+
+    function closeRating() {
+      document.getElementById('ratingModal').classList.remove('show');
+      ratingOrderId = null;
+    }
+
+    function renderStars() {
+      const box = document.getElementById('starBox');
+      if (!box) return;
+      box.innerHTML = [1, 2, 3, 4, 5].map(i =>
+        `<span class="star ${i <= currentRating ? 'active' : ''}" onclick="setRating(${i})">★</span>`
+      ).join('');
+    }
+
+    function setRating(n) {
+      currentRating = n;
+      renderStars();
+    }
+
+    function submitRating() {
+      if (!ratingOrderId) return;
+      const comment = document.getElementById('ratingComment').value;
+      updateOrder(ratingOrderId, o => ({
+        rating: currentRating,
+        comment,
+        timeline: [...o.timeline, { time: Date.now(), title: '居民评价', description: `评分 ${currentRating} 星${comment ? '：' + comment : ''}` }]
+      }));
+      closeRating();
+      toast('评价提交成功，感谢反馈');
+      location.hash = `resident/order/${ratingOrderId}`;
+      setTimeout(() => render(), 0);
+    }
+
+    // ===== Admin =====
+    function renderAdmin(hash) {
+      const parts = hash.split('/');
+      const page = parts[1] || 'dashboard';
+      const param = parts[2] || '';
+
+      let content = '';
+      if (page === 'dashboard') content = adminDashboard();
+      else if (page === 'orders') content = adminOrders(param);
+      else if (page === 'order') content = adminOrderDetail(param);
+      else content = adminDashboard();
+
+      app.innerHTML = `
+        <div class="header" style="background: linear-gradient(135deg, #1F2937 0%, #111827 100%);">
+          <div class="header-back" onclick="location.hash='home'">←</div>
+          <div class="header-title">物业管理后台</div>
+          <div class="header-action"></div>
+        </div>
+        ${content}
+        <div class="bottom-nav">
+          <div class="nav-item ${page === 'dashboard' ? 'active' : ''}" onclick="location.hash='admin/dashboard'">
+            <span class="nav-icon">📊</span>看板
+          </div>
+          <div class="nav-item ${page === 'orders' || page === 'order' ? 'active' : ''}" onclick="location.hash='admin/orders'">
+            <span class="nav-icon">📋</span>工单
+          </div>
+        </div>
+      `;
+    }
+
+    function adminDashboard() {
+      const orders = getOrders();
+      const total = orders.length;
+      const pending = orders.filter(o => o.status === 'pending').length;
+      const processing = orders.filter(o => o.status === 'processing' || o.status === 'assigned').length;
+      const completed = orders.filter(o => o.status === 'completed').length;
+      const rated = orders.filter(o => o.rating);
+      const avgRating = rated.length ? (rated.reduce((s, o) => s + o.rating, 0) / rated.length).toFixed(1) : '-';
+
+      return `
+        <div class="content-padded">
+          <div class="stat-grid" style="padding: 0;">
+            <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">工单总数</div></div>
+            <div class="stat-card"><div class="stat-value" style="color: var(--warning);">${pending}</div><div class="stat-label">待处理</div></div>
+            <div class="stat-card"><div class="stat-value" style="color: var(--secondary);">${processing}</div><div class="stat-label">处理中/已派单</div></div>
+            <div class="stat-card"><div class="stat-value" style="color: var(--success);">${completed}</div><div class="stat-label">已完成</div></div>
+          </div>
+          <div class="card" style="margin-top: 12px;">
+            <div class="card-title">服务满意度</div>
+            <div style="font-size: 32px; font-weight: 700; margin-top: 10px;">${avgRating}<span style="font-size: 16px; color: var(--muted); font-weight: 400;"> / 5</span></div>
+            <div class="text-sm text-muted">基于 ${rated.length} 条评价</div>
+          </div>
+          <div class="card">
+            <div class="card-title">快捷操作</div>
+            <div class="flex gap-2 mt-1">
+              <button class="btn btn-primary" onclick="location.hash='admin/orders'">查看全部工单</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function adminOrders(filter = 'all') {
+      const orders = getOrders();
+      const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+      const tabs = [
+        { key: 'all', label: '全部' },
+        { key: 'pending', label: '待处理' },
+        { key: 'assigned', label: '已派单' },
+        { key: 'processing', label: '处理中' },
+        { key: 'completed', label: '已完成' },
+      ];
+
+      let listHtml = '';
+      if (filtered.length === 0) {
+        listHtml = `<div class="empty"><div class="empty-icon">📭</div><div>暂无${filter === 'all' ? '' : STATUS_MAP[filter].label}工单</div></div>`;
+      } else {
+        listHtml = filtered.map(o => `
+          <div class="order-item" onclick="location.hash='admin/order/${o.id}'">
+            <div class="order-header">
+              <span class="order-id">${o.id}</span>
+              <span class="badge ${STATUS_MAP[o.status].class}">${STATUS_MAP[o.status].label}</span>
+            </div>
+            <div class="order-type">${o.type} · ${o.location}</div>
+            <div class="order-meta">${formatTime(o.createdAt)} · ${o.reporterName} · ${o.assignee ? '维修：' + o.assignee : '未派单'}</div>
+          </div>
+        `).join('');
+      }
+
+      return `
+        <div class="tabs">
+          ${tabs.map(t => `<div class="tab ${filter === t.key ? 'active' : ''}" onclick="location.hash='admin/orders/${t.key}'">${t.label}</div>`).join('')}
+        </div>
+        <div class="content-padded">
+          ${listHtml}
+        </div>
+      `;
+    }
+
+    function adminOrderDetail(id) {
+      const order = getOrders().find(o => o.id === id);
+      if (!order) return adminOrders();
+      const badge = STATUS_MAP[order.status];
+
+      return `
+        <div class="content-padded">
+          <div class="card" style="margin-top: 8px;">
+            <div class="order-header">
+              <span class="order-id">${order.id}</span>
+              <span class="badge ${badge.class}">${badge.label}</span>
+            </div>
+            <div class="order-type" style="margin-top: 8px;">${order.type} · ${order.location}</div>
+            <div class="order-meta mt-1">报修人：${order.reporterName} ${order.phone}</div>
+            <div class="order-meta mt-1">提交时间：${formatTime(order.createdAt)}</div>
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 14px 0;">
+            <div class="text-sm text-muted">问题描述</div>
+            <div style="font-size: 14px; margin-top: 4px;">${order.description}</div>
+          </div>
+          <div class="card">
+            <div class="card-title">处理操作</div>
+            <form onsubmit="handleAdminUpdate(event, '${order.id}')">
+              <div class="form-group">
+                <label class="form-label">当前状态</label>
+                <select class="form-select" name="status">
+                  ${STATUS_FLOW.map(s => `<option value="${s}" ${order.status === s ? 'selected' : ''}>${STATUS_MAP[s].label}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">维修员</label>
+                <select class="form-select" name="assignee">
+                  <option value="">未分配</option>
+                  ${STAFF.map(s => `<option value="${s}" ${order.assignee === s ? 'selected' : ''}>${s}</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">处理备注</label>
+                <textarea class="form-textarea" name="note" placeholder="例如：已更换水龙头，测试无渗漏"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">保存处理进度</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title">处理记录</div>
+            <div class="timeline" style="margin-top: 12px;">
+              ${order.timeline.slice().reverse().map(e => `
+                <div class="timeline-item active">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-time">${formatTime(e.time)}</div>
+                  <div class="timeline-title">${e.title}</div>
+                  <div class="timeline-desc">${e.description}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleAdminUpdate(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const newStatus = form.status.value;
+      const newAssignee = form.assignee.value;
+      const note = form.note.value.trim();
+
+      updateOrder(id, o => {
+        const events = [...o.timeline];
+        if (newStatus !== o.status) {
+          const titles = { pending: '状态更新为待处理', assigned: '已派单', processing: '维修中', completed: '已完成' };
+          events.push({ time: Date.now(), title: titles[newStatus] || '状态更新', description: note || STATUS_MAP[newStatus].label });
+        }
+        if (newAssignee && newAssignee !== o.assignee) {
+          events.push({ time: Date.now(), title: '派单调整', description: `维修员变更为 ${newAssignee}` });
+        }
+        if (note && newStatus === o.status && newAssignee === o.assignee) {
+          events.push({ time: Date.now(), title: '备注更新', description: note });
+        }
+        return { status: newStatus, assignee: newAssignee, timeline: events };
+      });
+
+      toast('处理进度已保存');
+      location.hash = `admin/order/${id}`;
+      setTimeout(() => render(), 0);
+    }
+
+    // ===== Boot =====
+    window.addEventListener('hashchange', render);
+    window.addEventListener('DOMContentLoaded', () => { loadData(); render(); });
+  </script>
+</body>
 </html>
