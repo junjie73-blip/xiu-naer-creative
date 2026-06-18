@@ -340,8 +340,10 @@
 
     function seedData() {
       const now = Date.now();
+      const prefix = `R${new Date(now).getFullYear()}${String(new Date(now).getMonth()+1).padStart(2,'0')}${String(new Date(now).getDate()).padStart(2,'0')}`;
       const orders = [
         makeOrder({
+          id: `${prefix}0001`,
           reporterName: '王阿姨', phone: '138****1234', type: '水电维修',
           location: '3号楼2单元501', description: '厨房水龙头一直滴水，关不紧。',
           status: 'completed', assignee: '张三', rating: 5, comment: '张师傅动作很快，态度也好',
@@ -355,6 +357,7 @@
           ]
         }),
         makeOrder({
+          id: `${prefix}0002`,
           reporterName: '李先生', phone: '139****5678', type: '家电维修',
           location: '7号楼1单元1202', description: '客厅空调不制冷，显示 E1 错误代码。',
           status: 'processing', assignee: '李四',
@@ -367,6 +370,7 @@
           ]
         }),
         makeOrder({
+          id: `${prefix}0003`,
           reporterName: '赵女士', phone: '137****9012', type: '门窗维修',
           location: '2号楼3单元802', description: '卧室窗户把手坏了，打不开。',
           status: 'assigned', assignee: '王五',
@@ -378,6 +382,7 @@
           ]
         }),
         makeOrder({
+          id: `${prefix}0004`,
           reporterName: '孙大爷', phone: '136****3456', type: '公共设施',
           location: '小区东门健身器材', description: '太极推手的转盘松动了，有安全隐患。',
           status: 'pending', assignee: '',
@@ -387,6 +392,7 @@
           ]
         }),
         makeOrder({
+          id: `${prefix}0005`,
           reporterName: '周小姐', phone: '135****7890', type: '管道疏通',
           location: '5号楼1单元102', description: '卫生间地漏下水很慢。',
           status: 'completed', assignee: '张三', rating: 4,
