@@ -324,6 +324,40 @@
     </div>
   </div>
 
+  <!-- Community Modal -->
+  <div id="communityModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-title" id="communityModalTitle">添加社区</div>
+      <form id="communityForm" onsubmit="handleCommunitySave(event)">
+        <input type="hidden" id="communityId" />
+        <div class="form-group">
+          <label class="form-label">社区名称</label>
+          <input class="form-input" id="communityName" placeholder="例如：阳光花园" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">所属区域</label>
+          <input class="form-input" id="communityRegion" placeholder="例如：朝阳区" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">详细地址</label>
+          <input class="form-input" id="communityAddress" placeholder="例如：建国路 88 号" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系人</label>
+          <input class="form-input" id="communityContactName" placeholder="物业负责人姓名" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">联系电话</label>
+          <input class="form-input" id="communityContactPhone" placeholder="物业联系电话" />
+        </div>
+        <div class="flex gap-2 mt-2">
+          <button type="button" class="btn btn-outline" onclick="closeCommunityModal()">取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- AI Scan Overlay -->
   <div id="scanOverlay" class="scan-overlay">
     <div class="scan-box">
@@ -349,7 +383,15 @@
     function loadData() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+          const data = JSON.parse(raw);
+          // 兼容旧数据：没有社区信息时自动补默认社区
+          if (!data.communities || data.communities.length === 0) {
+            data.communities = defaultCommunities();
+            saveData(data);
+          }
+          return data;
+        }
       } catch (e) { console.error(e); }
       return seedData();
     }
@@ -426,9 +468,18 @@
           ]
         }),
       ];
-      const data = { orders, lastId: 5 };
+      const communities = defaultCommunities();
+      const data = { orders, lastId: 5, communities };
       saveData(data);
       return data;
+    }
+
+    function defaultCommunities() {
+      return [
+        { id: 'C001', name: '阳光花园', region: '朝阳区', address: '建国路 88 号', contactName: '刘经理', contactPhone: '010-12345678' },
+        { id: 'C002', name: '碧水云天', region: '海淀区', address: '中关村大街 12 号', contactName: '陈主任', contactPhone: '010-87654321' },
+        { id: 'C003', name: '金色家园', region: '丰台区', address: '南三环西路 66 号', contactName: '王物业', contactPhone: '010-56781234' },
+      ];
     }
 
     function makeOrder(opts) {
@@ -840,6 +891,7 @@
       if (page === 'dashboard') content = adminDashboard();
       else if (page === 'orders') content = adminOrders(param);
       else if (page === 'order') content = adminOrderDetail(param);
+      else if (page === 'community') content = adminCommunity();
       else content = adminDashboard();
 
       app.innerHTML = `
@@ -855,6 +907,9 @@
           </div>
           <div class="nav-item ${page === 'orders' || page === 'order' ? 'active' : ''}" onclick="location.hash='admin/orders'">
             <span class="nav-icon">📋</span>工单
+          </div>
+          <div class="nav-item ${page === 'community' ? 'active' : ''}" onclick="location.hash='admin/community'">
+            <span class="nav-icon">🏘️</span>社区
           </div>
         </div>
       `;
@@ -1074,6 +1129,102 @@
       toast('处理进度已保存');
       location.hash = `admin/order/${id}`;
       setTimeout(() => render(), 0);
+    }
+
+    function adminCommunity() {
+      const data = loadData();
+      const communities = data.communities || [];
+      const listHtml = communities.length === 0
+        ? `<div class="empty"><div class="empty-icon">🏘️</div><div>暂无社区，点击右上角添加</div></div>`
+        : communities.map(c => `
+          <div class="card" style="margin-top: 10px;">
+            <div class="flex-between">
+              <div style="font-weight: 600; font-size: 15px;">${c.name}</div>
+              <div class="flex gap-1">
+                <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;" onclick="openCommunityModal('${c.id}')">编辑</button>
+                <button class="btn" style="padding: 4px 10px; font-size: 12px; background: #FEE2E2; color: #DC2626; border: none;" onclick="deleteCommunity('${c.id}')">删除</button>
+              </div>
+            </div>
+            <div class="text-sm text-muted mt-1">${c.region} · ${c.address}</div>
+            ${c.contactName || c.contactPhone ? `<div class="text-sm text-muted mt-1">联系人：${c.contactName || '-'} ${c.contactPhone || ''}</div>` : ''}
+          </div>
+        `).join('');
+
+      return `
+        <div class="content-padded">
+          <div class="card">
+            <div class="flex-between">
+              <div class="card-title" style="margin: 0;">社区管理</div>
+              <button class="btn btn-primary" style="padding: 6px 14px; font-size: 13px;" onclick="openCommunityModal()">+ 添加社区</button>
+            </div>
+          </div>
+          ${listHtml}
+        </div>
+      `;
+    }
+
+    function openCommunityModal(id) {
+      const isEdit = !!id;
+      const modal = document.getElementById('communityModal');
+      document.getElementById('communityModalTitle').textContent = isEdit ? '编辑社区' : '添加社区';
+      document.getElementById('communityId').value = id || '';
+
+      if (isEdit) {
+        const data = loadData();
+        const c = (data.communities || []).find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('communityName').value = c.name;
+        document.getElementById('communityRegion').value = c.region;
+        document.getElementById('communityAddress').value = c.address;
+        document.getElementById('communityContactName').value = c.contactName || '';
+        document.getElementById('communityContactPhone').value = c.contactPhone || '';
+      } else {
+        document.getElementById('communityForm').reset();
+        document.getElementById('communityId').value = '';
+      }
+
+      modal.classList.add('show');
+    }
+
+    function closeCommunityModal() {
+      document.getElementById('communityModal').classList.remove('show');
+    }
+
+    function handleCommunitySave(e) {
+      e.preventDefault();
+      const id = document.getElementById('communityId').value;
+      const name = document.getElementById('communityName').value.trim();
+      const region = document.getElementById('communityRegion').value.trim();
+      const address = document.getElementById('communityAddress').value.trim();
+      const contactName = document.getElementById('communityContactName').value.trim();
+      const contactPhone = document.getElementById('communityContactPhone').value.trim();
+
+      const data = loadData();
+      data.communities = data.communities || [];
+
+      if (id) {
+        const idx = data.communities.findIndex(c => c.id === id);
+        if (idx !== -1) {
+          data.communities[idx] = { ...data.communities[idx], name, region, address, contactName, contactPhone };
+        }
+      } else {
+        const nextId = 'C' + String((data.communities.length + 1)).padStart(3, '0');
+        data.communities.push({ id: nextId, name, region, address, contactName, contactPhone });
+      }
+
+      saveData(data);
+      closeCommunityModal();
+      toast(id ? '社区已更新' : '社区已添加');
+      render();
+    }
+
+    function deleteCommunity(id) {
+      if (!confirm('确定删除该社区吗？')) return;
+      const data = loadData();
+      data.communities = (data.communities || []).filter(c => c.id !== id);
+      saveData(data);
+      toast('社区已删除');
+      render();
     }
 
     // ===== Boot =====
