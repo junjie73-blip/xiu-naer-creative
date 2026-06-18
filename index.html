@@ -662,8 +662,10 @@
     }
 
     function residentOrders(filter = 'all') {
+      const validFilters = ['all', 'pending', 'processing', 'completed'];
+      const activeFilter = validFilters.includes(filter) ? filter : 'all';
       const orders = getOrders();
-      const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+      const filtered = activeFilter === 'all' ? orders : orders.filter(o => o.status === activeFilter);
       const tabs = [
         { key: 'all', label: '全部' },
         { key: 'pending', label: '待处理' },
@@ -673,7 +675,7 @@
 
       let listHtml = '';
       if (filtered.length === 0) {
-        listHtml = `<div class="empty"><div class="empty-icon">📭</div><div>暂无${filter === 'all' ? '' : STATUS_MAP[filter].label}工单</div></div>`;
+        listHtml = `<div class="empty"><div class="empty-icon">📭</div><div>暂无${activeFilter === 'all' ? '' : STATUS_MAP[activeFilter].label}工单</div></div>`;
       } else {
         listHtml = filtered.map(o => `
           <div class="order-item" onclick="location.hash='resident/order/${o.id}'">
@@ -689,7 +691,7 @@
 
       return `
         <div class="tabs">
-          ${tabs.map(t => `<div class="tab ${filter === t.key ? 'active' : ''}" onclick="location.hash='resident/orders/${t.key}'">${t.label}</div>`).join('')}
+          ${tabs.map(t => `<div class="tab ${activeFilter === t.key ? 'active' : ''}" onclick="location.hash='resident/orders/${t.key}'">${t.label}</div>`).join('')}
         </div>
         <div class="content-padded">
           ${listHtml}
@@ -871,8 +873,10 @@
     }
 
     function adminOrders(filter = 'all') {
+      const validFilters = ['all', 'pending', 'assigned', 'processing', 'completed'];
+      const activeFilter = validFilters.includes(filter) ? filter : 'all';
       const orders = getOrders();
-      const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+      const filtered = activeFilter === 'all' ? orders : orders.filter(o => o.status === activeFilter);
       const tabs = [
         { key: 'all', label: '全部' },
         { key: 'pending', label: '待处理' },
@@ -883,7 +887,7 @@
 
       let listHtml = '';
       if (filtered.length === 0) {
-        listHtml = `<div class="empty"><div class="empty-icon">📭</div><div>暂无${filter === 'all' ? '' : STATUS_MAP[filter].label}工单</div></div>`;
+        listHtml = `<div class="empty"><div class="empty-icon">📭</div><div>暂无${activeFilter === 'all' ? '' : STATUS_MAP[activeFilter].label}工单</div></div>`;
       } else {
         listHtml = filtered.map(o => `
           <div class="order-item" onclick="location.hash='admin/order/${o.id}'">
@@ -899,7 +903,7 @@
 
       return `
         <div class="tabs">
-          ${tabs.map(t => `<div class="tab ${filter === t.key ? 'active' : ''}" onclick="location.hash='admin/orders/${t.key}'">${t.label}</div>`).join('')}
+          ${tabs.map(t => `<div class="tab ${activeFilter === t.key ? 'active' : ''}" onclick="location.hash='admin/orders/${t.key}'">${t.label}</div>`).join('')}
         </div>
         <div class="content-padded">
           ${listHtml}
